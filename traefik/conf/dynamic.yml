@@ -1,0 +1,18 @@
+routers:
+  privatebin:
+    entrypoints:
+      - "websecure"
+    # change to suit
+    rule: "Host(paste.wetfish.net"
+    tls:
+      certResolver: "letsencrypt"
+        domains:
+          # here too
+          - main: "paste.wetfish.net"
+    service: "privatebin"
+
+  services:
+    phpipam:
+      loadBalancer:
+        servers:
+          - url: "http://privatebin.:8080"

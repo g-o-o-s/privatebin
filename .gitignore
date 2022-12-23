@@ -1,0 +1,5 @@
+mariadb.env
+mariadb/data/*
+mariadb/run/*
+privatebin/conf/conf.php
+traefik/acme/*

@@ -1,0 +1,49 @@
+version: '2.4'
+
+services:
+  privatebin:
+    image: docker.io/privatebin/pdo:1.5.0-alpine3.17
+    restart: unless-stopped
+    # we (want to, better be able to) use mysql socket file for connection
+    # so we share the /var/run/mysqld directory between the two containers
+    volumes:
+      - "./mariadb/run:/var/run/mysqld:rw"
+      - "./privatebin/conf/conf.php:/srv/cfg/conf.php:ro"
+    healthcheck:
+      test: ["curl", "-f", "localhost:8080"]
+      interval: 60s
+      timeout: 5s
+      retries: 20
+    #
+    # uncomment these lines for local dev
+    # might want to comment out traefik too
+    #ports:
+    #  - "127.0.0.1:8080:8080"
+
+  mariadb:
+    image: docker.io/mariadb:10.10.2
+    restart: unless-stopped
+    env_file:
+      - mariadb.env
+    network_mode: none
+    # built-in healthcheck script
+    healthcheck:
+      test: ["healthcheck.sh", "--su=mysql", "--connect", "--innodb_initialized"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - "./mariadb/data:/var/lib/mysql:rw"
+      - "./mariadb/run:/var/run/mysqld:rw"
+
+  traefik:
+    # v2.6.2+ has issues reading strings as arrays from yaml config, stay on 2.6.1 for now
+    image: docker.io/traefik:v2.6.1
+    restart: unless-stopped
+    volumes:
+      - "./traefik/conf/static.yml:/etc/traefik/traefik.yml:ro"
+      - "./traefik/conf/dynamic.yml:/etc/traefik/dynamic/dynamic.yml:ro"
+      - "./traefik/acme:/etc/traefik/acme:rw"
+    # for more better add your wan address here
+    ports:
+      - "443:443"

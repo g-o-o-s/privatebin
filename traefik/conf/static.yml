@@ -1,0 +1,24 @@
+# TODO: come back later once things are working and turn this down
+log:
+  level: DEBUG
+
+# we only have to listen on :443 because we're
+# using the TLS challenge for LE
+entryPoints:
+  websecure:
+    address: ":443"
+
+# our dynamic config
+providers:
+  file:
+    directory: "/etc/traefik/dynamic"
+    watch: true
+
+# we use tlschallenge so we dont have to open up :80 at all
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      # change to suit
+      email: letsencrypt@wetfish.net
+      storage: "/etc/traefik/acme/acme.json"
+      tlsChallenge: {}
